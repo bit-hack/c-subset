@@ -506,79 +506,89 @@ int stmt() {
   }
 }
 
+int parseFunc(int objid) {
+  /* Add function */
+  funids[nfun] = objid;
+  funoffs[nfun++] = curloc;
+  
+  /* Parse arguments */
+  narg = 0;
+  if (!istoken(')')) {
+    do {
+      type();
+      argids[narg++] = name();
+    } while (istoken(','));
+    expect(')');
+  }
+
+  /* Start of function body */
+  expect('{');
+
+  /* Local var decls */
+  nlocal = 0;
+  while (token == T_INT) {
+    type();
+    do {
+      localids[nlocal++] = name();
+    } while (istoken(','));
+    expect(';');
+  }
+
+  /* Allocate stack space for local vars */
+  if (DEFSTK < nlocal)
+    emitop(C_ALLOC, nlocal);
+
+  /* Statements until end of function body */
+  while (!istoken('}'))
+    stmt();
+
+  emit(C_RETURN);
+  
+  return 1;
+}
+
+int parseGlobalVar(int objid) {
+  /* Global variable */
+  globoffs[nglob] = curgloboffs;
+  
+  /* If array declaration */
+  if (istoken('[')) {
+    expect(T_CONST);
+    curgloboffs = curgloboffs + lexval;
+    expect(']');
+    globscalar[nglob] = 0;
+  } else {
+    curgloboffs++;
+    globscalar[nglob] = 1;
+  }
+  globids[nglob++] = objid;
+  expect(';');
+  
+  return 1;
+}
+
 int parse() {
   int objid;
 
   token = getlex();
-  while (1) {
-
-    /* Exit when EOF is reached */
-    if (token < 0)
-      return 1;
+  
+  /* While EOF not encountered */
+  while (token >= 0) {
 
     /* Type declaration */
     type();
     objid = name();
-    
+
     /* If is function declaration */
     if (istoken('(')) {
-      
-      /* Add function */
-      funids[nfun] = objid;
-      funoffs[nfun++] = curloc;
-      
-      /* Parse arguments */
-      narg = 0;
-      if (!istoken(')')) {
-        do {
-          type();
-          argids[narg++] = name();
-        } while (istoken(','));
-        expect(')');
-      }
-
-      /* Function body */
-      expect('{');
-
-      /* Local var decls */
-      nlocal = 0;
-      while (token == T_INT) {
-        type();
-        do {
-          localids[nlocal++] = name();
-        } while (istoken(','));
-        expect(';');
-      }
-
-      /* Allocate stack space for local vars */
-      if (DEFSTK < nlocal)
-        emitop(C_ALLOC, nlocal);
-
-      /* Statements until end of function */
-      while (!istoken('}'))
-        stmt();
-
-      emit(C_RETURN);
+      parseFunc(objid);
 
     } else {
-      
-      /* Global variable */
-      globoffs[nglob] = curgloboffs;
-      
-      /* If array declaration */
-      if (istoken('[')) {
-        expect(T_CONST);
-        curgloboffs = curgloboffs + lexval;
-        expect(']');
-        globscalar[nglob] = 0;
-      } else {
-        curgloboffs++;
-        globscalar[nglob] = 1;
-      }
-      globids[nglob++] = objid;
-      expect(';');
+      parseGlobalVar(objid);
     }
   }
+
+  return 1;
 }
 
 int main() {
@@ -601,7 +611,7 @@ int main() {
   parse();
   n = curloc;
 
-  /* Generate code to jump to main */
+  /* Generate code to jump to main at start of code */
   curloc = 0;
   lexval = lookup("main");
   pushval();
@@ -612,7 +622,7 @@ int main() {
   putchar(n);
   putchar(n / 256);
 
-  /* Dump all code to stdout */
+  /* Emit all code to stdout */
   p = code;
   while (n--) {
     putchar(*p++);
