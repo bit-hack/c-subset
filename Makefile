@@ -15,15 +15,15 @@ parse.oc:	parse.c defs.h
 
 test: parse interp parse.oc
 	$(CC) fac.c -o fac
-	fac > fac.out.cc
-	parse < fac.c > fac.oo.1
-	interp < fac.oo.1 > fac.out.1
-	parse < parse.oc > parse.oo
-	cat parse.oo fac.c | interp > fac.oo.2
-	interp < fac.oo.2 > fac.out.2
+	./fac.exe > fac.out.cc
+	./parse.exe < fac.c > fac.oo.1
+	./interp.exe < fac.oo.1 > fac.out.1
+	./parse.exe < parse.oc > parse.oo
+	cat parse.oo fac.c | ./interp.exe > fac.oo.2
+	./interp.exe < fac.oo.2 > fac.out.2
 	cmp fac.out.cc fac.out.1
 	cmp fac.out.cc fac.out.2
-	cat parse.oo parse.oc | interp > parse.oo.1
+	cat parse.oo parse.oc | ./interp.exe > parse.oo.1
 	cmp parse.oo parse.oo.1
 
 clean:
