@@ -8,12 +8,15 @@
 #define MAXDATA   30000
 #define MAXSYM    30000
 
-#define OPMOD     100   /* token and precidence combiner        */
+#define OPMOD       100 /* token and precidence combiner        */
 
-/* operations corresponding to operators, no operands */
-/* code the most frequent operators as whitespace */
+#define LITMOD      16  /* opcode/lit combiner                  */
+#define LITMAX      7   /* max combined opcode/literal value    */
+                        /* special case outwith this value      */
+#define LITMUL      8
+#define LITLIM      32  /* start of opcode/lit (C_PUSHAA)       */
 
-/* combined opcodes where the lower 4 bits are encoded as a literal */
+/* combined opcodes where lower 4 bits are encoded as a literal */
 #define X_PUSHAA    2   /* push address allocation: fp + lit    */
 #define X_PUSHA     3   /* push allocation: [fp + lit]          */
 #define X_PUSHAL    4   /* push ?: fp - lit - framesize - 1     */
@@ -100,11 +103,6 @@
 #define P_PRE       100 /* ? */
 
 /* operations with no operands */
-
-#define LITMOD      16  /* literal + opcode combiner            */
-#define LITMAX      7
-#define LITMUL      8
-#define LITLIM      32
 
 #define FRAMESIZE   3
 #define F_PC        1   /* Frame PC (return address)            */

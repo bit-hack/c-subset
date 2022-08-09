@@ -123,13 +123,17 @@ int main(int argc, char **argv) {
 
       /* Try the combined opcodes/literals */
       default: {
+
         lit = opc % LITMOD;
         opc = opc / LITMOD;
+
         if (lit == LITMAX) {
           lit = mem[pc++];
           lit = lit + mem[pc++] * 256;
-        } else if (LITMAX < lit)
+        } else if (LITMAX < lit) {
           lit = lit + mem[pc++] * LITMUL - 1;
+        }
+
         switch (opc) {
           OPPUSH(X_PUSHAA, fp + lit)
           OPPUSH(X_PUSHAL, fp - lit - FRAMESIZE - 1)
