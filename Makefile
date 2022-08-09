@@ -14,12 +14,12 @@ parse.oc:	parse.c defs.h
 	$(CC) -E -DSELF parse.c | sed -e '/^#/d' -e '/^$$/d' > parse.oc
 
 test: parse.exe interp.exe parse.oc
-	$(CC) fac.c -o fac
+	$(CC) test/fac.c -o fac
 	./fac.exe > fac.out.cc
-	./parse.exe < fac.c > fac.oo.1
+	./parse.exe < test/fac.c > fac.oo.1
 	./interp.exe < fac.oo.1 > fac.out.1
 	./parse.exe < parse.oc > parse.oo
-	cat parse.oo fac.c | ./interp.exe > fac.oo.2
+	cat parse.oo test/fac.c | ./interp.exe > fac.oo.2
 	./interp.exe < fac.oo.2 > fac.out.2
 	cmp fac.out.cc fac.out.1
 	cmp fac.out.cc fac.out.2
