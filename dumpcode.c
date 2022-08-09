@@ -1,3 +1,15 @@
+#ifdef DISAS
+#include <stdio.h>
+#include <string.h>
+
+#include "defs.h"
+#define MAXSTACK 10000
+#define MAXMEM (MAXCODE + MAXDATA + MAXSTACK)
+
+int mem[MAXMEM];
+#define code mem
+#endif
+
 void dumpcode(int from, int to) {
   int n, opc, oopc, lit, ofrom;
   char buf[200], *p;
@@ -18,108 +30,43 @@ void dumpcode(int from, int to) {
       }
     }
     switch (opc) {
-    case C_NOT:
-      sprintf(p, "NOT");
-      break;
-    case C_NEG:
-      sprintf(p, "NEG");
-      break;
-    case C_ADD:
-      sprintf(p, "ADD");
-      break;
-    case C_SUB:
-      sprintf(p, "SUB");
-      break;
-    case C_DIV:
-      sprintf(p, "DIV");
-      break;
-    case C_MUL:
-      sprintf(p, "MUL");
-      break;
-    case C_MOD:
-      sprintf(p, "MOD");
-      break;
-    case C_EQ:
-      sprintf(p, "EQ");
-      break;
-    case C_NE:
-      sprintf(p, "NE");
-      break;
-    case C_LT:
-      sprintf(p, "LT");
-      break;
-    case C_GT:
-      sprintf(p, "GT");
-      break;
-    case C_LE:
-      sprintf(p, "LE");
-      break;
-    case C_GE:
-      sprintf(p, "GE");
-      break;
-    case C_AND:
-      sprintf(p, "AND");
-      break;
-    case C_OR:
-      sprintf(p, "OR");
-      break;
-    case C_DUP:
-      sprintf(p, "DUP");
-      break;
-    case C_POSTINC:
-      sprintf(p, "POSTINC");
-      break;
-    case C_POSTDEC:
-      sprintf(p, "POSTDEC");
-      break;
-    case C_ASSIGN:
-      sprintf(p, "ASSIGN");
-      break;
-    case C_ASSIGNPOP:
-      sprintf(p, "ASSIGNPOP");
-      break;
-    case C_RETURN:
-      sprintf(p, "RETURN");
-      break;
-    case C_POP:
-      sprintf(p, "POP");
-      break;
-    case C_DEREF:
-      sprintf(p, "DEREF");
-      break;
-    case C_JUMP:
-      sprintf(p, "JUMP %d", lit);
-      break;
-    case C_JFALSE:
-      sprintf(p, "JFALSE %d", lit);
-      break;
-    case C_TRUE:
-      sprintf(p, "JTRUE %d", lit);
-      break;
-    case C_PUSHAL:
-      sprintf(p, "PUSHAL %d", lit);
-      break;
-    case C_PUSHL:
-      sprintf(p, "PUSHL %d", lit);
-      break;
-    case C_PUSHAA:
-      sprintf(p, "PUSHAA %d", lit);
-      break;
-    case C_PUSHA:
-      sprintf(p, "PUSHA %d", lit);
-      break;
-    case C_PUSHAG:
-      sprintf(p, "PUSHAG %d", lit);
-      break;
-    case C_PUSHG:
-      sprintf(p, "PUSHG %d", lit);
-      break;
-    case C_PUSHC:
-      sprintf(p, "PUSHC %d", lit);
-      break;
-    case C_PUSHAC:
-      sprintf(p, "PUSHAC %d", lit);
-      break;
+    case C_NOT:       sprintf(p, "NOT");            break;
+    case C_NEG:       sprintf(p, "NEG");            break;
+    case C_ADD:       sprintf(p, "ADD");            break;
+    case C_SUB:       sprintf(p, "SUB");            break;
+    case C_DIV:       sprintf(p, "DIV");            break;
+    case C_MUL:       sprintf(p, "MUL");            break;
+    case C_MOD:       sprintf(p, "MOD");            break;
+    case C_EQ:        sprintf(p, "EQ");             break;
+    case C_NE:        sprintf(p, "NE");             break;
+    case C_LT:        sprintf(p, "LT");             break;
+    case C_GT:        sprintf(p, "GT");             break;
+    case C_LE:        sprintf(p, "LE");             break;
+    case C_GE:        sprintf(p, "GE");             break;
+    case C_AND:       sprintf(p, "AND");            break;
+    case C_OR:        sprintf(p, "OR");             break;
+    case C_DUP:       sprintf(p, "DUP");            break;
+    case C_POSTINC:   sprintf(p, "POSTINC");        break;
+    case C_POSTDEC:   sprintf(p, "POSTDEC");        break;
+    case C_ASSIGN:    sprintf(p, "ASSIGN");         break;
+    case C_ASSIGNPOP: sprintf(p, "ASSIGNPOP");      break;
+    case C_RETURN:    sprintf(p, "RETURN");         break;
+    case C_POP:       sprintf(p, "POP");            break;
+    case C_DEREF:     sprintf(p, "DEREF");          break;
+    case C_JUMP:      sprintf(p, "JUMP %d",   lit); break;
+    case C_JFALSE:    sprintf(p, "JFALSE %d", lit); break;
+    case C_TRUE:      sprintf(p, "JTRUE %d",  lit); break;
+    case C_PUSHAL:    sprintf(p, "PUSHAL %d", lit); break;
+    case C_PUSHL:     sprintf(p, "PUSHL %d",  lit); break;
+    case C_PUSHAA:    sprintf(p, "PUSHAA %d", lit); break;
+    case C_PUSHA:     sprintf(p, "PUSHA %d",  lit); break;
+    case C_PUSHAG:    sprintf(p, "PUSHAG %d", lit); break;
+    case C_PUSHG:     sprintf(p, "PUSHG %d",  lit); break;
+    case C_PUSHC:     sprintf(p, "PUSHC %d",  lit); break;
+    case C_PUSHAC:    sprintf(p, "PUSHAC %d", lit); break;
+    case C_CALL:      sprintf(p, "CALL %d",   lit); break;
+    case C_ALLOC:     sprintf(p, "ALLOC %d",  lit); break;
+    case C_EXIT:      sprintf(p, "EXIT");           break;
     case C_PUSHS:
       sprintf(p, "PUSHS %d \"", lit);
       n = lit;
@@ -127,15 +74,6 @@ void dumpcode(int from, int to) {
       while (n--)
         *p++ = code[from++] ? code[from - 1] : '';
       strcpy(p, "\"");
-      break;
-    case C_CALL:
-      sprintf(p, "CALL %d", lit);
-      break;
-    case C_ALLOC:
-      sprintf(p, "ALLOC %d", lit);
-      break;
-    case C_EXIT:
-      sprintf(p, "EXIT");
       break;
     default:
       sprintf(p, "unknown %d", oopc);
@@ -153,6 +91,7 @@ void dumpcode(int from, int to) {
 }
 
 #ifdef DISAS
+
 main() {
   int codesize, a;
   int *p;
@@ -167,4 +106,5 @@ main() {
   dumpcode(0, codesize);
   exit(0);
 }
+
 #endif

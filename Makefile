@@ -10,6 +10,9 @@ interp.exe:	interp.c dumpcode.c defs.h
 parse.exe: parse.c defs.h
 	$(CC) $(CFLAGS) parse.c -o parse
 
+dasm.exe: dumpcode.c defs.h
+	$(CC) $(CFLAGS) dumpcode.c -DDISAS -o dasm
+
 parse.oc:	parse.c defs.h
 	$(CC) -E -DSELF parse.c | sed -e '/^#/d' -e '/^$$/d' > parse.oc
 

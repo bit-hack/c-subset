@@ -46,8 +46,10 @@ int localids[NLOCAL];
 char symbol[MAXSYM];
 char code[MAXCODE];
 char names[MAXNAMES];
+
 #define NAMES                                                                  \
   "return\0if\0else\0while\0do\0int\0char\0getchar\0putchar\0eputchar\0exit"
+
 #define NAMESSIZE 62
 
 int eputstr(char *s) {
@@ -69,7 +71,9 @@ int error(char *s) {
   exit(1);
 }
 
-int digit(int c) { return '0' <= c && c <= '9'; }
+int digit(int c) {
+  return '0' <= c && c <= '9';
+}
 
 int letter(int c) {
   return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || c == '_' || digit(c);
@@ -148,8 +152,8 @@ int getlex() {
   int c;
   char *p;
 
-  while (0 <= (c = next()) &&
-         c <= ' ') /* consider all control chars as whitespace */
+  /* consider all control chars as whitespace */
+  while (0 <= (c = next()) && c <= ' ')
     ;
 
   if (c == -1 || instr("()[]{},;", c)) {
@@ -247,7 +251,9 @@ int name() {
   return r;
 }
 
-int emit(int opc) { code[curloc++] = opc; }
+int emit(int opc) {
+  code[curloc++] = opc;
+}
 
 int emitat(int a, int c) {
   code[a++] = c;
