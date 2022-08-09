@@ -24,11 +24,6 @@ int verbosef;
   sp--;                                                                        \
   TOS = x
 
-#define CASE(l, s)                                                             \
-  case l:                                                                      \
-    s;                                                                         \
-    break;
-
 /* Binary operator */
 #define OP2(l, o) CASE(l, r = POP; TOS = TOS o r)
 
@@ -47,6 +42,12 @@ int verbosef;
   TOS = r;                                                                     \
   if (lit % 2)                                                                 \
     sp++
+
+/* Switch case helper */
+#define CASE(l, s)                                                             \
+  case l:                                                                      \
+    s;                                                                         \
+    break;
 
 #define code mem
 #include "dumpcode.c"
@@ -78,8 +79,8 @@ int main(int argc, char **argv) {
   while (1) {
 
     if (verbosef) {
-      fprintf(stderr, "%5d %5d(%5d,%5d,%5d) ", fp, sp, mem[sp], mem[sp + 1],
-              mem[sp + 2]);
+      fprintf(stderr, "%5d %5d(%5d,%5d,%5d) ",
+              fp, sp, mem[sp], mem[sp + 1], mem[sp + 2]);
       dumpcode(pc, pc + 1);
     }
 

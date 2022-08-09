@@ -1,7 +1,7 @@
-#define NARG      50    /* max arguments                        */
-#define NLOCAL    50    /* max locals                           */
-#define NGLOB     300   /* max globals                          */
-#define NFUN      300   /* max functions                        */
+#define NARG        50  /* max arguments                        */
+#define NLOCAL      50  /* max locals                           */
+#define NGLOB       300 /* max globals                          */
+#define NFUN        300 /* max functions                        */
 
 #define MAXNAMES  30000
 #define MAXCODE   10000
@@ -50,29 +50,29 @@
 
 #define C_ASSIGN    1
 #define C_OROR      2   /* logical or                           */
-#define C_ANDAND    3
+#define C_ANDAND    3   /* logical and                          */
 #define C_OR        4   /* bitwise or                           */
-#define C_AND       5
-#define C_EQ        6
-#define C_NE        7
-#define C_LT        8
+#define C_AND       5   /* bitwise and                          */
+#define C_EQ        6   /* equal                                */
+#define C_NE        7   /* not equal                            */
+#define C_LT        8   /* less than                            */
 #define C_ASSIGNPOP 9   /* assign and pop (drop)  (frequent)    */
 #define C_RETURN    10  /* return from subroutine (frequent)    */
-#define C_GE        11
-#define C_ADD       12
-#define C_SUB       13
-#define C_MUL       14
-#define C_DIV       15
-#define C_MOD       16
+#define C_GE        11  /* greater than or equal                */
+#define C_ADD       12  /* add                                  */
+#define C_SUB       13  /* subtract                             */
+#define C_MUL       14  /* multiply                             */
+#define C_DIV       15  /* divide                               */
+#define C_MOD       16  /* modulo                               */
 #define C_NOT       17  /* unary not                            */
 #define C_NEG       18  /* unary negate                         */
 #define C_POSTINC   19  /* dereference with post increment      */
 #define C_DUP       21  /* duplicate top of stack               */
 #define C_POP       22  /* pop (drop) top of stack              */
 #define C_DEREF     23  /* dereference                          */
-#define C_LE        24
+#define C_LE        24  /* less than or equal to                */
 #define C_POSTDEC   25  /* dereference with post decrement      */
-#define C_GT        26
+#define C_GT        26  /* greater than                         */
 #define C_EXIT      27  /* builtin exit()                       */
 
 /* Tokens                                                       */
