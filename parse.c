@@ -1,22 +1,28 @@
 #ifndef SELF
+
 #include <stdio.h>
-int eputchar(int c) { return fputc(c, stderr); }
+
+int eputchar(int c) {
+  return fputc(c, stderr);
+}
+
 #endif
 
-#define T_NAME 256
-#define T_CONST 257
+#define T_NAME   256
+#define T_CONST  257
 #define T_STRING 258
 
-#define RESBASE 512
+#define RESBASE  512
 #define T_RETURN 512
-#define T_IF 513
-#define T_ELSE 514
-#define T_WHILE 515
-#define T_DO 516
-#define T_INT 517
-#define I_CHAR 6
+#define T_IF     513
+#define T_ELSE   514
+#define T_WHILE  515
+#define T_DO     516
+#define T_INT    517
 
-#define RES 7
+#define I_CHAR   6
+
+#define RES      7
 
 #include "defs.h"
 
@@ -52,11 +58,13 @@ char names[MAXNAMES];
 
 #define NAMESSIZE 62
 
+/* Output error string */
 int eputstr(char *s) {
   while (*s)
     eputchar(*s++);
 }
 
+/* Raise a fatal error */
 int error(char *s) {
   int i;
 
@@ -71,14 +79,17 @@ int error(char *s) {
   exit(1);
 }
 
+/* Check if character is a digit */
 int digit(int c) {
   return '0' <= c && c <= '9';
 }
 
+/* Check if a character is alpha-numeric */
 int letter(int c) {
   return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || c == '_' || digit(c);
 }
 
+/* check if strings are equal */
 int eqstr(char *p, char *q) {
   while (*p) {
     if (*p++ != *q++)
@@ -87,6 +98,7 @@ int eqstr(char *p, char *q) {
   return !*q;
 }
 
+/* Lookup a name in symbol table */
 int lookup(char *name) {
   int i;
   char *ns;
@@ -106,6 +118,7 @@ int lookup(char *name) {
   return nsym++;
 }
 
+/* Advance to next input stream character */
 int next() {
   int r;
 
@@ -122,6 +135,7 @@ int gobble(int t, int rr, int r) {
   return r;
 }
 
+/* Parse string up to delimiter */
 int getstring(int delim) {
   int c;
 
@@ -140,6 +154,7 @@ int getstring(int delim) {
   symbol[strsize++] = 0;
 }
 
+/* Check if 'c' is in string 's' */
 int instr(char *s, int c) {
   while (*s) {
     if (*s++ == c)
@@ -148,17 +163,20 @@ int instr(char *s, int c) {
   return 0;
 }
 
+/* Next lexical element */
 int getlex() {
   int c;
   char *p;
 
-  /* consider all control chars as whitespace */
+  /* Skip past all whitespace characters */
   while (0 <= (c = next()) && c <= ' ')
     ;
 
+  /* Braces */
   if (c == -1 || instr("()[]{},;", c)) {
     return c;
   }
+
   if (c == '/') {
     if (thechar == '*') {
       /* next(); dropping this is wrong */
@@ -169,35 +187,33 @@ int getlex() {
     } else
       return T_DIV;
   }
-  if (c == '*')
-    return T_MUL;
-  if (c == '%')
-    return T_MOD;
-  if (c == '-')
-    return gobble(c, T_POSTDEC, T_SUB);
-  if (c == '>')
-    return gobble('=', T_GE, T_GT);
-  if (c == '<')
-    return gobble('=', T_LE, T_LT);
-  if (c == '=')
-    return gobble(c, T_EQ, T_ASSIGN);
-  if (c == '+')
-    return gobble(c, T_POSTINC, T_ADD);
-  if (c == '!')
-    return gobble('=', T_NE, T_NOT);
-  if (c == '&')
-    return gobble(c, T_ANDAND, T_AND);
-  if (c == '|')
-    return gobble(c, T_OROR, T_OR);
+
+  /* Single character tokens */
+  if (c == '*') return T_MUL;
+  if (c == '%') return T_MOD;
+  if (c == '-') return gobble(c, T_POSTDEC, T_SUB);
+  if (c == '>') return gobble('=', T_GE, T_GT);
+  if (c == '<') return gobble('=', T_LE, T_LT);
+  if (c == '=') return gobble(c, T_EQ, T_ASSIGN);
+  if (c == '+') return gobble(c, T_POSTINC, T_ADD);
+  if (c == '!') return gobble('=', T_NE, T_NOT);
+  if (c == '&') return gobble(c, T_ANDAND, T_AND);
+  if (c == '|') return gobble(c, T_OROR, T_OR);
+
+  /* Character literal */
   if (c == '\'') {
     getstring(c);
     lexval = symbol[0];
     return T_CONST;
   }
+
+  /* String literal */
   if (c == '"') {
     getstring(c);
     return T_STRING;
   }
+
+  /* Integer literal */
   if (digit(c)) {
     lexval = c - '0';
     while (digit(thechar)) {
@@ -205,6 +221,8 @@ int getlex() {
     }
     return T_CONST;
   }
+
+  /* Name or Identifier */
   if (letter(c)) {
     p = symbol;
     *p++ = c;
@@ -218,9 +236,11 @@ int getlex() {
     }
     return T_NAME;
   }
+
   error("Bad input");
 }
 
+/* Check if we have specific token */
 int istoken(int t) {
   if (token == t) {
     token = getlex();
@@ -229,21 +249,23 @@ int istoken(int t) {
   return 0;
 }
 
+/* Expect a specific token */
 int expect(int t) {
   if (!istoken(t)) {
     error("syntax error");
   }
 }
 
+/* Parse a type decl */
 int type() {
   expect(T_INT);
   while (istoken(T_MUL))
     ;
 }
 
+/* Parse a name */
 int name() {
   int r;
-
   if (token != T_NAME)
     error("name expected");
   r = lexval;
@@ -251,15 +273,18 @@ int name() {
   return r;
 }
 
+/* Emit into code stream */
 int emit(int opc) {
   code[curloc++] = opc;
 }
 
+/* Emit into specific point in code stream */
 int emitat(int a, int c) {
   code[a++] = c;
   code[a] = c / 256;
 }
 
+/*Emit instruction and operand */
 int emitop(int rator, int rand) {
   int r;
 
@@ -287,7 +312,7 @@ int pushloop(int puop, int max, int *arr) {
   return 0;
 }
 
-/* return 1 if lvalue */
+/* Return 1 if lvalue */
 int pushval() {
   int lval;
 
@@ -313,11 +338,13 @@ int pushval() {
   return lval;
 }
 
+/* Pointer dereference */
 int pderef(int l) {
   if (l)
     emit(C_DEREF);
 }
 
+/* Parse expression                   */
 /* returns true if lvalue, else false */
 int expr(int needval, int prec) {
   int na;
@@ -329,7 +356,7 @@ int expr(int needval, int prec) {
 
   islval = 0;
 
-  /* parse one expr */
+  /* Parse one expr */
   if (istoken(T_CONST)) {
     emitop(C_PUSHC, lexval);
   } else if (istoken(T_STRING)) {
@@ -359,7 +386,7 @@ int expr(int needval, int prec) {
   } else
     error("syntax error in expr");
 
-  /* one expression parsed, try for hi prec ops */
+  /* One expression parsed, try for hi precidence ops */
   any = 1;
   while (any) {
     op = token % OPMOD;
@@ -424,12 +451,14 @@ int expr(int needval, int prec) {
   return islval;
 }
 
+/* Parse expression in parenthesis */
 int pexpr() {
   expect('(');
   expr(1, P_NONE);
   expect(')');
 }
 
+/* Parse statement */
 int stmt() {
   int jdest;
   int tst;
@@ -482,14 +511,23 @@ int parse() {
 
   token = getlex();
   while (1) {
+
+    /* Exit when EOF is reached */
     if (token < 0)
       return 1;
-    type();         /* T_INT or CHAR */
-    objid = name(); /* T_NAME */
+
+    /* Type declaration */
+    type();
+    objid = name();
+    
+    /* If is function declaration */
     if (istoken('(')) {
-      /* function */
+      
+      /* Add function */
       funids[nfun] = objid;
       funoffs[nfun++] = curloc;
+      
+      /* Parse arguments */
       narg = 0;
       if (!istoken(')')) {
         do {
@@ -498,9 +536,11 @@ int parse() {
         } while (istoken(','));
         expect(')');
       }
+
+      /* Function body */
       expect('{');
-      /* body */
-      /* decls */
+
+      /* Local var decls */
       nlocal = 0;
       while (token == T_INT) {
         type();
@@ -509,16 +549,24 @@ int parse() {
         } while (istoken(','));
         expect(';');
       }
+
+      /* Allocate stack space for local vars */
       if (DEFSTK < nlocal)
         emitop(C_ALLOC, nlocal);
-      /* stmts */
+
+      /* Statements until end of function */
       while (!istoken('}'))
         stmt();
+
       emit(C_RETURN);
+
     } else {
+      
+      /* Global variable */
       globoffs[nglob] = curgloboffs;
+      
+      /* If array declaration */
       if (istoken('[')) {
-        /* array */
         expect(T_CONST);
         curgloboffs = curgloboffs + lexval;
         expect(']');
@@ -547,7 +595,8 @@ int main() {
     *p++ = *q++;
   while (n--);
 
-  curloc = 10; /* some space to avoid low addrs */
+  /* Parse the input file */
+  curloc = 10; /* Some space to avoid low addrs */
   thechar = getchar();
   parse();
   n = curloc;
@@ -559,11 +608,15 @@ int main() {
   emitop(C_CALL, 0);
   emit(C_EXIT);
 
+  /* Number of names */
   putchar(n);
   putchar(n / 256);
+
+  /* Dump all code to stdout */
   p = code;
   while (n--) {
     putchar(*p++);
   }
+
   return 0;
 }
