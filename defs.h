@@ -48,7 +48,7 @@
 #define C_JFALSE    (LITMOD * X_JFALSE)
 #define C_TRUE      (LITMOD * X_TRUE  )
 
-#define C_ASSIGN    1
+#define C_ASSIGN    1   /* assignment (sets top of stack too)   */
 #define C_OROR      2   /* logical or                           */
 #define C_ANDAND    3   /* logical and                          */
 #define C_OR        4   /* bitwise or                           */
