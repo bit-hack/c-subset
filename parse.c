@@ -1,12 +1,10 @@
 #ifndef SELF
-
 #include <stdio.h>
 
 int eputchar(int c) {
   return fputc(c, stderr);
-}
 
-#endif
+#endif  /* SELF */
 
 #define T_NAME   256
 #define T_CONST  257
@@ -419,6 +417,7 @@ int expr(int needval, int prec) {
       any = 0;
   }
 
+  /* precidence climbing (?) */
   opprec = token / OPMOD;
   while (prec < opprec) {
     if ((op = token % OPMOD) != C_ASSIGN) {
@@ -444,6 +443,7 @@ int expr(int needval, int prec) {
     islval = 0;
     opprec = token / OPMOD;
   }
+
   if (needval) {
     pderef(islval);
     islval = 0;
@@ -463,10 +463,15 @@ int stmt() {
   int jdest;
   int tst;
 
+  /* Compound statements */
   if (istoken('{')) {
     while (!istoken('}'))
       stmt();
-  } else if (istoken(T_IF)) {
+    return 1;
+  }
+  
+  /* If statment */
+  if (istoken(T_IF)) {
     pexpr();
     jdest = emitj(C_JFALSE, 0);
     stmt();
@@ -478,31 +483,50 @@ int stmt() {
     } else {
       emitat(jdest, curloc);
     }
-  } else if (istoken(T_WHILE)) {
+    return 1;
+  }
+
+  /* While statement */
+  if (istoken(T_WHILE)) {
     tst = curloc;
     pexpr();
     jdest = emitj(C_JFALSE, 0);
     stmt();
     emitj(C_JUMP, tst);
     emitat(jdest, curloc);
-  } else if (istoken(T_DO)) {
+    return 1;
+  }
+  
+  /* Do while statement */
+  if (istoken(T_DO)) {
     jdest = curloc;
     stmt();
     expect(T_WHILE);
     pexpr();
     emit(C_NOT);
     emitj(C_JFALSE, jdest);
-  } else if (istoken(T_RETURN)) {
+    return 1;
+  }
+  
+  /* Return statement */
+  if (istoken(T_RETURN)) {
     expr(1, P_NONE);
     expect(';');
     emit(C_RETURN);
-  } else if (istoken(';')) {
-    /* empty */
-  } else {
-    /* just an expression */
+    return 1;
+  }
+  
+  /* Empty statement */
+  if (istoken(';')) {
+    return 1;
+  }
+  
+  /* Expression */
+  {
     expr(1, P_NONE);
     emit(C_POP);
     expect(';');
+    return 1;
   }
 }
 
@@ -570,6 +594,7 @@ int parseGlobalVar(int objid) {
 int parse() {
   int objid;
 
+  /* Get next token */
   token = getlex();
   
   /* While EOF not encountered */
