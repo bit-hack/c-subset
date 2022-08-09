@@ -17,12 +17,12 @@
 #define LITLIM      32  /* start of opcode/lit (C_PUSHAA)       */
 
 /* combined opcodes where lower 4 bits are encoded as a literal */
-#define X_PUSHAA    2   /* push address allocation: fp + lit    */
-#define X_PUSHA     3   /* push allocation: [fp + lit]          */
-#define X_PUSHAL    4   /* push ?: fp - lit - framesize - 1     */
-#define X_PUSHL     5   /* push ?: [fp - lit - framesize - 1]   */
-#define X_PUSHAG    6   /* push address global: codesize + lit  */
-#define X_PUSHG     7   /* push global: [codesize + lit]        */
+#define X_PUSHAA    2   /* push arg addr:   fp+lit              */
+#define X_PUSHA     3   /* push arg:       [fp+lit]             */
+#define X_PUSHAL    4   /* push local addr: fp-lit-framesize-1  */
+#define X_PUSHL     5   /* push local:     [fp-lit-framesize-1] */
+#define X_PUSHAG    6   /* push global addr: codesize + lit     */
+#define X_PUSHG     7   /* push global:     [codesize + lit]    */
 #define X_PUSHC     8   /* push constant                        */
 #define X_PUSHS     9   /* push string                          */
 #define X_ALLOC     10  /* stack allocation                     */
@@ -104,7 +104,7 @@
 
 /* operations with no operands */
 
-#define FRAMESIZE   3
+#define FRAMESIZE   3   /* Frame book keeping size              */
 #define F_PC        1   /* Frame PC (return address)            */
 #define F_FP        2   /* Frame FP (old frame pointer)         */
 #define F_NA        3   /* Frame number of arguments            */
