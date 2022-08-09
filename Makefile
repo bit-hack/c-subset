@@ -2,36 +2,36 @@ CC=gcc
 CFLAGS=-g
 #CFLAGS=-Wall
 
-all:	interp.exe parse.exe
+all:	interp parse
 
-interp.exe:	interp.c dumpcode.c defs.h
+interp:	interp.c dumpcode.c defs.h
 	$(CC) $(CFLAGS) interp.c -o interp
 
-parse.exe: parse.c defs.h
+parse: parse.c defs.h
 	$(CC) $(CFLAGS) parse.c -o parse
 
-dasm.exe: dumpcode.c defs.h
+dasm: dumpcode.c defs.h
 	$(CC) $(CFLAGS) dumpcode.c -DDISAS -o dasm
 
 parse.oc:	parse.c defs.h
 	$(CC) -E -DSELF parse.c | sed -e '/^#/d' -e '/^$$/d' > parse.oc
 
-test: parse.exe interp.exe parse.oc
+test: parse interp parse.oc
 	$(CC) test/fac.c -o fac
-	./fac.exe > fac.out.cc
-	./parse.exe < test/fac.c > fac.oo.1
-	./interp.exe < fac.oo.1 > fac.out.1
-	./parse.exe < parse.oc > parse.oo
-	cat parse.oo test/fac.c | ./interp.exe > fac.oo.2
-	./interp.exe < fac.oo.2 > fac.out.2
+	./fac > fac.out.cc
+	./parse < test/fac.c > fac.oo.1
+	./interp < fac.oo.1 > fac.out.1
+	./parse < parse.oc > parse.oo
+	cat parse.oo test/fac.c | ./interp > fac.oo.2
+	./interp < fac.oo.2 > fac.out.2
 	cmp fac.out.cc fac.out.1
 	cmp fac.out.cc fac.out.2
-	cat parse.oo parse.oc | ./interp.exe > parse.oo.1
+	cat parse.oo parse.oc | ./interp > parse.oo.1
 	cmp parse.oo parse.oo.1
 
 clean:
-	rm -f parse.exe interp.exe parse.oc *.oo fac *.[12] fac.out.cc test/*.bin
+	rm -f parse interp parse.oc *.oo fac *.[12] fac.out.cc test/*.bin
 
-hello: interp.exe parse.exe
-	./parse.exe < test/hello.c > test/hello.bin
-	./interp.exe < test/hello.bin
+hello: interp parse
+	./parse < test/hello.c > test/hello.bin
+	./interp < test/hello.bin

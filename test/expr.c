@@ -24,7 +24,7 @@ int test0() {
   int g_;
 
   g  = 10;
-  g_ = test0();
+  g_ = test0_();
   putval(g);
   putval(g_);
 }
@@ -46,7 +46,6 @@ int test1() {
 
 int main() {
 
-  /* unimpl op 0 at 143 */
   test0();
   test1();
 

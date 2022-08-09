@@ -3,6 +3,7 @@
 
 int eputchar(int c) {
   return fputc(c, stderr);
+}
 
 #endif  /* SELF */
 

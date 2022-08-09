@@ -1,124 +1,116 @@
-#define NARG 50
-#define NLOCAL 50
-#define NGLOB 300
-#define NFUN 300
+#define NARG      50    /* max arguments                        */
+#define NLOCAL    50    /* max locals                           */
+#define NGLOB     300   /* max globals                          */
+#define NFUN      300   /* max functions                        */
 
-#define MAXNAMES 30000
-#define MAXCODE 10000
-#define MAXDATA 30000
-#define MAXSYM 30000
+#define MAXNAMES  30000
+#define MAXCODE   10000
+#define MAXDATA   30000
+#define MAXSYM    30000
 
-#define OPMOD 100
+#define OPMOD     100   /* token and precidence combiner        */
 
 /* operations corresponding to operators, no operands */
 /* code the most frequent operators as whitespace */
-#define C_ASSIGNPOP 9 /* frequent */
-#define C_ASSIGN 1
-#define T_ASSIGN 101
-#define C_QUEST ---
 
-#define C_OROR 2
-#define T_OROR 302
-#define C_ANDAND 3
-#define T_ANDAND 403
-#define C_OR 4
-#define T_OR 504
-#define C_XOR ---
+/* combined opcodes where the lower 4 bits are encoded as a literal */
+#define X_PUSHAA    2   /* push address allocation: fp + lit    */
+#define X_PUSHA     3   /* push allocation: [fp + lit]          */
+#define X_PUSHAL    4   /* push ?: fp - lit - framesize - 1     */
+#define X_PUSHL     5   /* push ?: [fp - lit - framesize - 1]   */
+#define X_PUSHAG    6   /* push address global: codesize + lit  */
+#define X_PUSHG     7   /* push global: [codesize + lit]        */
+#define X_PUSHC     8   /* push constant                        */
+#define X_PUSHS     9   /* push string                          */
+#define X_ALLOC     10  /* stack allocation                     */
+#define X_CALL      11  /* call subroutine                      */
+#define X_PUSHAC    12  /* push address code                    */
+#define X_JUMP      13  /* unconditional jump                   */
+#define X_JFALSE    14  /* jump if false                        */
+#define X_TRUE      15  /* jump if true                         */
 
-#define C_AND 5
-#define T_AND 705
+/* high forms of the combined opcodes                           */
+#define C_PUSHAA    (LITMOD * X_PUSHAA)
+#define C_PUSHA     (LITMOD * X_PUSHA )
+#define C_PUSHAL    (LITMOD * X_PUSHAL)
+#define C_PUSHL     (LITMOD * X_PUSHL )
+#define C_PUSHAG    (LITMOD * X_PUSHAG)
+#define C_PUSHG     (LITMOD * X_PUSHG )
+#define C_PUSHC     (LITMOD * X_PUSHC )
+#define C_PUSHS     (LITMOD * X_PUSHS )
+#define C_ALLOC     (LITMOD * X_ALLOC )
+#define C_CALL      (LITMOD * X_CALL  )
+#define C_PUSHAC    (LITMOD * X_PUSHAC)
+#define C_JUMP      (LITMOD * X_JUMP  )
+#define C_JFALSE    (LITMOD * X_JFALSE)
+#define C_TRUE      (LITMOD * X_TRUE  )
 
-#define C_EQ 6
-#define T_EQ 806
-#define C_NE 7
-#define T_NE 807
-#define C_LT 8
-#define T_LT 808
-#define C_GT 26
-#define T_GT 826
-#define C_LE 24
-#define T_LE 824
-#define C_GE 11
-#define T_GE 811
+#define C_ASSIGN    1
+#define C_OROR      2   /* logical or                           */
+#define C_ANDAND    3
+#define C_OR        4   /* bitwise or                           */
+#define C_AND       5
+#define C_EQ        6
+#define C_NE        7
+#define C_LT        8
+#define C_ASSIGNPOP 9   /* assign and pop (drop)  (frequent)    */
+#define C_RETURN    10  /* return from subroutine (frequent)    */
+#define C_GE        11
+#define C_ADD       12
+#define C_SUB       13
+#define C_MUL       14
+#define C_DIV       15
+#define C_MOD       16
+#define C_NOT       17  /* unary not                            */
+#define C_NEG       18  /* unary negate                         */
+#define C_POSTINC   19  /* dereference with post increment      */
+#define C_DUP       21  /* duplicate top of stack               */
+#define C_POP       22  /* pop (drop) top of stack              */
+#define C_DEREF     23  /* dereference                          */
+#define C_LE        24
+#define C_POSTDEC   25  /* dereference with post decrement      */
+#define C_GT        26
+#define C_EXIT      27  /* builtin exit()                       */
 
-#define C_LSH ---
-#define C_RSH ---
+/* Tokens                                                       */
+#define TOKEN(PREC, OP) ((PREC * OPMOD) + OP)
+#define T_ASSIGN    TOKEN( 1,  1)
+#define T_OROR      TOKEN( 3,  2)
+#define T_ANDAND    TOKEN( 4,  3)
+#define T_OR        TOKEN( 5,  4)
+#define T_AND       TOKEN( 7,  5)
+#define T_EQ        TOKEN( 8,  6)
+#define T_NE        TOKEN( 8,  7)
+#define T_LT        TOKEN( 8,  8)
+#define T_GE        TOKEN( 8, 11)
+#define T_LE        TOKEN( 8, 24)
+#define T_GT        TOKEN( 8, 26)
+#define T_ADD       TOKEN(10, 12)
+#define T_SUB       TOKEN(10, 13)
+#define T_MUL       TOKEN(11, 14)
+#define T_DIV       TOKEN(11, 15)
+#define T_MOD       TOKEN(11, 16)
+#define T_NOT       TOKEN(12, 17)
+#define T_NEG       TOKEN(12, 18)
+#define T_POSTINC   TOKEN(12, 19)
+#define T_INV       TOKEN(12, 20)
+#define T_POSTDEC   TOKEN(12, 25)
 
-#define C_ADD 12
-#define T_ADD 1012
-#define C_SUB 13
-#define T_SUB 1013
-
-#define C_MUL 14
-#define T_MUL 1114
-#define C_DIV 15
-#define T_DIV 1115
-#define C_MOD 16
-#define T_MOD 1116
-
-#define C_NOT 17
-#define T_NOT 1217
-#define C_NEG 18
-#define T_NEG 1218
-#define C_POSTINC 19
-#define T_POSTINC 1219
-#define C_INV 20
-#define T_INV 1220
-#define C_POSTDEC 25
-#define T_POSTDEC 1225
-
-#define P_NONE 0
-#define P_PRE 100
+#define P_NONE      0   /* No precedence                        */
+#define P_PRE       100 /* ? */
 
 /* operations with no operands */
-#define C_DUP 21
-#define C_POP 22
-#define C_DEREF 23
-#define C_RETURN 10 /* frequent */
-#define C_EXIT 27
 
-#define LITMOD 16
-#define LITMAX 7
-#define LITMUL 8
-#define LITLIM 32
+#define LITMOD      16  /* literal + opcode combiner            */
+#define LITMAX      7
+#define LITMUL      8
+#define LITLIM      32
 
-/* operations with one operand */
-#define C_PUSHAA 32
-#define X_PUSHAA 2
-#define C_PUSHA 48
-#define X_PUSHA 3
-#define C_PUSHAL 64
-#define X_PUSHAL 4
-#define C_PUSHL 80
-#define X_PUSHL 5
-#define C_PUSHAG 96
-#define X_PUSHAG 6
-#define C_PUSHG 112
-#define X_PUSHG 7
-#define C_PUSHC 128
-#define X_PUSHC 8
-#define C_PUSHS 144
-#define X_PUSHS 9
-#define C_ALLOC 160
-#define X_ALLOC 10
-#define C_CALL 176
-#define X_CALL 11
-#define C_PUSHAC 192
-#define X_PUSHAC 12
+#define FRAMESIZE   3
+#define F_PC        1   /* Frame PC (return address)            */
+#define F_FP        2   /* Frame FP (old frame pointer)         */
+#define F_NA        3   /* Frame number of arguments            */
 
-/* jumps */
-#define C_JUMP 208
-#define X_JUMP 13
-#define C_JFALSE 224
-#define X_JFALSE 14
-#define C_TRUE 240
-#define X_TRUE 15
+#define DEFSTK      16  /* Default stack?                       */
 
-#define FRAMESIZE 3
-#define F_PC 1
-#define F_FP 2
-#define F_NA 3
-
-#define DEFSTK 16
-
-#define NPRECALL 4
+#define NPRECALL    4   /* Related to builtin calls?            */
