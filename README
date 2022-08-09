@@ -1,3 +1,16 @@
+# C subset compiler
+
+This repository contains a resurected version of Lennart Augustsson compiler for a small subset of C.
+
+The compiler is sufficiantly advaced that it is able to compile itself.
+
+My goal resurecting this project is to clean up and document the code to make it a good learning vehicle.
+
+
+----
+
+# Original Readme
+
 This is an implementation of a small subset of C.
 
 Do `make test' to compile and test everything.
@@ -15,5 +28,3 @@ it can be.
 	-- Lennart Augustsson
 
 	augustss@cs.chalmers.se
-
-
