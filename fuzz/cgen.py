@@ -44,56 +44,86 @@ def rand_name():
 # ----------------------------------------------------------------------------
 
 class c_global(object):
-    def __init__(self):
-        self.name = rand_name()
-        self.type = choose(['int', 'char'])
+    def __init__(self, name='bad', type='bad'):
+        self.name = name
+        self.type = type
+
+    def __repr__(self):
+        return '{} {}'.format(self.type, self.name)
 
 class c_local(object):
-    def __init__(self):
-        self.name = rand_name()
-        self.type = choose(['int', 'char'])
+    def __init__(self, name='bad', type='bad'):
+        self.name = name
+        self.type = type
+
+    def __repr__(self):
+        return '{} {}'.format(self.type, self.name)
 
 class c_function(object):
-    def __init__(self):
-        self.name   = 'bad'
+    def __init__(self, name='bad'):
+        self.name   = name
         self.args   = []
         self.locals = []
-
-    def generate(self):
-        self.name = rand_name()
-
-        nargs = rand_range(0, 4)
-        for i in range(0, nargs):
-            self.args += c_local() 
-
-        nlocals = rand_range(0, 4)
-        for i in range(0, nlocals):
-            self.locals += c_local() 
 
 class c_program(object):
     def __init__(self):
         self.globals = []
-        self.funcs = []
-    
-    def generate(self):
-        nglobals = rand_range(0, 8)
-        for i in range(0, nglobals):
-            self.globals += c_global()
-        
-        nfuncs = rand_range(0, 4)
-        for i in range(0, nfuncs):
-            self.funcs += c_function()
+        self.funcs   = []
 
 # ----------------------------------------------------------------------------
 
-def gen_global():
-    pass
+def emit(s):
+    sys.stdout.write(s)
 
-def gen_function():
-    pass
+def emitln(s):
+    sys.stdout.write(s + '\n')
+
+# ----------------------------------------------------------------------------
+
+prog = c_program()
+
+def gen_function(name=None, nargs=None):
+    f = c_function(name=name or rand_name())
+    prog.funcs += f
+
+    # add arguments
+    nargs = nargs or rand_range(0, 4)
+    for i in range(0, nargs):
+        f.args += c_local()
+
+    # emit declaration
+    emitln('int {}({}) {{'.format(f.name, ','.join(f.args)))
+
+    # add locals
+    nlocals = rand_range(0, 4)
+    for i in range(0, nlocals):
+        l = c_local()
+        f.locals += l
+        emitln('  {};'.format(l))
+
+    # add statements
+    # ...
+
+    # terminating brace
+    emitln('}')
+
+def gen_global():
+    g = c_global(name=rand_name(), type=choose('int', 'char'))
+    prog.globals += g
+
+    emitln('{};'.format(g))
 
 def main():
-    pass
+    # generate globals
+    nglobals = rand_range(0, 8)
+    for i in range(0, nglobals):
+        gen_global()
+    # generate functions
+    nfuncs = rand_range(0, 8)
+    for i in range(0, nfuncs):
+        gen_function()
+    # generate main function
+    gen_function(name='main', nargs=0)
 
 if __name__ == '__main__':
     main()
