@@ -4,7 +4,6 @@
 int eputchar(int c) {
   return fputc(c, stderr);
 }
-
 #endif  /* SELF */
 
 #define T_NAME   256
@@ -25,17 +24,17 @@ int eputchar(int c) {
 
 #include "defs.h"
 
-int curloc;       /* current emit position in the code stream               */
-int lexval;       /* value if token is a literal type                       */
-int token;        /* current token from the token stream                    */
-int thechar;      /* lookahead character from the input stream              */
-int nglob;        /* current number of globals                              */
-int nlocal;       /* current number of locals                               */
-int nfun;         /* current number of functions                            */
-int strsize;      /* size of currently parsed string                        */
-int narg;         /* current number of function arguments                   */
-int curgloboffs;  /* current offsets into global table                      */
-int nsym;         /* current number of symbols in symbol table              */
+int curloc;       /* Current emit position in the code stream               */
+int lexval;       /* Value if token is a literal type                       */
+int token;        /* Current token from the token stream                    */
+int thechar;      /* Lookahead character from the input stream              */
+int nglob;        /* Current number of globals                              */
+int nlocal;       /* Current number of locals                               */
+int nfun;         /* Current number of functions                            */
+int strsize;      /* Size of currently parsed string                        */
+int narg;         /* Current number of function arguments                   */
+int curgloboffs;  /* Current offsets into global table                      */
+int nsym;         /* Current number of symbols in symbol table              */
 int pusharg;
 int pushop;
 
@@ -47,15 +46,15 @@ int funids[NFUN];
 int funoffs[NFUN];
 int localids[NLOCAL];
 
-char symbol[MAXSYM];  /* currently parsed symbol                            */
-char code[MAXCODE];   /* code stream                                        */
-char names[MAXNAMES]; /* symbol table                                       */
+char symbol[MAXSYM];  /* Currently parsed symbol                            */
+char code[MAXCODE];   /* Code stream                                        */
+char names[MAXNAMES]; /* Symbol table                                       */
 
-/* initial contents of the symbol table */
-#define NAMES                                                                  \
+/* Initial contents of the symbol table */
+#define NAMESSIZE 62
+#define NAMES \
   "return\0if\0else\0while\0do\0int\0char\0getchar\0putchar\0eputchar\0exit"
 
-#define NAMESSIZE 62
 
 /* Output error string */
 int eputstr(char *s) {
@@ -108,12 +107,10 @@ int lookup(char *name) {
     if (eqstr(ns, name)) {
       return i;
     }
-    while (*ns++)
-      ;
+    while (*ns++);
     i++;
   }
-  while (*ns++ = *name++)
-    ;
+  while (*ns++ = *name++);
   return nsym++;
 }
 
@@ -169,19 +166,17 @@ int getlex() {
   char *p;
 
   /* Skip past all whitespace characters */
-  while (0 <= (c = next()) && c <= ' ')
-    ;
+  while (0 <= (c = next()) && c <= ' ');
 
   /* Braces */
   if (c == -1 || instr("()[]{},;", c)) {
     return c;
   }
 
+  /* Multi-line comment */
   if (c == '/') {
     if (thechar == '*') {
-      /* next(); dropping this is wrong */
-      while (next() != '*' || thechar != '/')
-        ;
+      while (next() != '*' || thechar != '/');
       next();
       return getlex();
     } else
@@ -259,8 +254,7 @@ int expect(int t) {
 /* Parse a type decl */
 int type() {
   expect(T_INT);
-  while (istoken(T_MUL))
-    ;
+  while (istoken(T_MUL));
 }
 
 /* Parse a name */
@@ -391,7 +385,7 @@ int expr(int needval, int prec) {
   while (any) {
     op = token % OPMOD;
     if (istoken('(')) {
-      /* function call */
+      /* Function call */
       pderef(islval);
       na = 0;
       if (!istoken(')')) {
@@ -404,7 +398,7 @@ int expr(int needval, int prec) {
       emitop(C_CALL, na * 2);
       islval = 0;
     } else if (istoken('[')) {
-      /* array ref */
+      /* Array ref */
       pderef(islval);
       expr(1, P_NONE);
       emit(C_ADD);
@@ -419,7 +413,7 @@ int expr(int needval, int prec) {
       any = 0;
   }
 
-  /* precidence climbing (?) */
+  /* Precidence climbing (?) */
   opprec = token / OPMOD;
   while (prec < opprec) {
     if ((op = token % OPMOD) != C_ASSIGN) {
