@@ -6,9 +6,7 @@ import sys
 # ----------------------------------------------------------------------------
 
 keywords = [
-    'if', 'else', 'return', 'int', 'char', 'do', 'while', 'putchar', 'getchar',
-    'for', 'struct', 'short', 'long', 'union', 'auto', 'register', 'signed',
-    'unsigned', 'sizeof']
+    'if', 'else', 'return', 'int', 'char', 'do', 'while', 'putchar', 'getchar']
 
 # ----------------------------------------------------------------------------
 
@@ -132,6 +130,9 @@ def gen_expr_ident():
 def gen_expr_const():
     emit(str(rand_range(0, 255)))
 
+def gen_expr_char():
+    emit('\'{}\''.format(chr(rand_range(ord('a'), ord('z')))))
+
 def gen_expr_assign():
     ident = prog.rand_ident()
     emit('('); emit(ident.name); emit(' = '); gen_expr(); emit(')')
@@ -146,6 +147,7 @@ def gen_expr_call():
 def gen_expr():
     funcs = [
         gen_expr_const,
+        gen_expr_char,
         gen_expr_ident,
         gen_expr_paren,
         gen_expr_unary,
@@ -155,6 +157,9 @@ def gen_expr():
     ]
     f = choose(*funcs)
     f()
+
+def gen_stmt_putchar():
+    indent(); emit('putchar('); gen_expr_char(); emitln(');')
 
 def gen_stmt_return():
     indent(); emit('return '); gen_expr(); emitln(';')
@@ -180,6 +185,7 @@ def gen_stmt_expr():
 def gen_stmt():
     funcs = [
         gen_stmt_return,
+        gen_stmt_putchar,
         gen_stmt_if,
         gen_stmt_compound,
         gen_stmt_compound,
@@ -194,7 +200,7 @@ def gen_function(name=None, nargs=None):
     prog.funcs += [f]
 
     # add arguments
-    nargs = nargs or rand_range(0, 4)
+    nargs = nargs if nargs is not None else rand_range(0, 4)
     for _ in range(0, nargs):
         f.args += [c_var(name=rand_name(), type=rand_type())]
 
