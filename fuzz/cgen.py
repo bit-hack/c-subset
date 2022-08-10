@@ -241,4 +241,5 @@ def main():
     gen_function(name='main', nargs=0)
 
 if __name__ == '__main__':
+    _seed = int(sys.argv[1]) if len(sys.argv) > 1 else 12345
     main()
