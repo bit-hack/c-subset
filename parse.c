@@ -25,19 +25,18 @@ int eputchar(int c) {
 
 #include "defs.h"
 
-/* Keep scalars early to get compact addressing modes. */
-int curloc;
-int lexval;
-int token;
+int curloc;       /* current emit position in the code stream               */
+int lexval;       /* value if token is a literal type                       */
+int token;        /* current token from the token stream                    */
+int thechar;      /* lookahead character from the input stream              */
+int nglob;        /* current number of globals                              */
+int nlocal;       /* current number of locals                               */
+int nfun;         /* current number of functions                            */
+int strsize;      /* size of currently parsed string                        */
+int narg;         /* current number of function arguments                   */
+int curgloboffs;  /* current offsets into global table                      */
+int nsym;         /* current number of symbols in symbol table              */
 int pusharg;
-int thechar;
-int nglob;
-int nlocal;
-int nfun;
-int strsize;
-int narg;
-int curgloboffs;
-int nsym;
 int pushop;
 
 int argids[NARG];
@@ -48,10 +47,11 @@ int funids[NFUN];
 int funoffs[NFUN];
 int localids[NLOCAL];
 
-char symbol[MAXSYM];
-char code[MAXCODE];
-char names[MAXNAMES];
+char symbol[MAXSYM];  /* currently parsed symbol                            */
+char code[MAXCODE];   /* code stream                                        */
+char names[MAXNAMES]; /* symbol table                                       */
 
+/* initial contents of the symbol table */
 #define NAMES                                                                  \
   "return\0if\0else\0while\0do\0int\0char\0getchar\0putchar\0eputchar\0exit"
 
@@ -88,7 +88,7 @@ int letter(int c) {
   return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || c == '_' || digit(c);
 }
 
-/* check if strings are equal */
+/* Check if strings are equal */
 int eqstr(char *p, char *q) {
   while (*p) {
     if (*p++ != *q++)
@@ -126,6 +126,7 @@ int next() {
   return r;
 }
 
+/* Try to consume a specific character */
 int gobble(int t, int rr, int r) {
   if (thechar == t) {
     next();
@@ -190,14 +191,14 @@ int getlex() {
   /* Single character tokens */
   if (c == '*') return T_MUL;
   if (c == '%') return T_MOD;
-  if (c == '-') return gobble(c, T_POSTDEC, T_SUB);
-  if (c == '>') return gobble('=', T_GE, T_GT);
-  if (c == '<') return gobble('=', T_LE, T_LT);
-  if (c == '=') return gobble(c, T_EQ, T_ASSIGN);
-  if (c == '+') return gobble(c, T_POSTINC, T_ADD);
-  if (c == '!') return gobble('=', T_NE, T_NOT);
-  if (c == '&') return gobble(c, T_ANDAND, T_AND);
-  if (c == '|') return gobble(c, T_OROR, T_OR);
+  if (c == '-') return gobble(c,   T_POSTDEC, T_SUB);
+  if (c == '>') return gobble('=', T_GE,      T_GT);
+  if (c == '<') return gobble('=', T_LE,      T_LT);
+  if (c == '=') return gobble(c,   T_EQ,      T_ASSIGN);
+  if (c == '+') return gobble(c,   T_POSTINC, T_ADD);
+  if (c == '!') return gobble('=', T_NE,      T_NOT);
+  if (c == '&') return gobble(c,   T_ANDAND,  T_AND);
+  if (c == '|') return gobble(c,   T_OROR,    T_OR);
 
   /* Character literal */
   if (c == '\'') {
@@ -283,7 +284,7 @@ int emitat(int a, int c) {
   code[a] = c / 256;
 }
 
-/*Emit instruction and operand */
+/* Emit instruction and operand */
 int emitop(int rator, int rand) {
   int r;
 
