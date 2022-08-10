@@ -18,9 +18,8 @@ int eputchar(int c) {
 #define T_DO     516
 #define T_INT    517
 
-#define I_CHAR   6
-
-#define RES      7
+#define I_CHAR   6  /* index of char token in NAMES                         */
+#define RES      7  /* number of reserved identifiers in NAMES              */
 
 #include "defs.h"
 
@@ -100,16 +99,19 @@ int eqstr(char *p, char *q) {
 int lookup(char *name) {
   int i;
   char *ns;
-
+  /* For all items in the string table */
   ns = names;
   i = 0;
   while (i < nsym) {
+    /* Return index if already in symbol table */
     if (eqstr(ns, name)) {
       return i;
     }
+    /* Skip onto next symbol */
     while (*ns++);
     i++;
   }
+  /* Copy into string table and assign new index */
   while (*ns++ = *name++);
   return nsym++;
 }
@@ -117,7 +119,6 @@ int lookup(char *name) {
 /* Advance to next input stream character */
 int next() {
   int r;
-
   r = thechar;
   thechar = getchar();
   return r;
@@ -135,9 +136,10 @@ int gobble(int t, int rr, int r) {
 /* Parse string up to delimiter */
 int getstring(int delim) {
   int c;
-
   strsize = 0;
+  /* Copy string into symbol array */
   while ((c = next()) != delim) {
+    /* Check for escape characters */
     if (c == '\\') {
       if ((c = next()) == 'n')
         c = '\n';
@@ -148,6 +150,7 @@ int getstring(int delim) {
     }
     symbol[strsize++] = c;
   }
+  /* Null terminate the string */
   symbol[strsize++] = 0;
 }
 
