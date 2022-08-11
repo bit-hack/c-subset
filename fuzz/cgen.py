@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/python
 
 from ast import stmt
 import sys
@@ -49,6 +49,9 @@ def rand_type():
 
 # ----------------------------------------------------------------------------
 
+class BacktrackError(Exception):
+    pass
+
 class c_var(object):
     def __init__(self, name='bad', type='bad'):
         self.name = name
@@ -74,13 +77,13 @@ class c_program(object):
     def rand_ident(self, locals=True, args=True, globals=True):
         f = self.top_func()
         l = []
-        if locals:
+        if locals and f.locals:
             l = l + [l for l in f.locals]
-        if args:
+        if args and f.args:
             l = l + [a for a in f.args]
-        if globals:
+        if globals and self.globals:
             l = l + [g for g in self.globals]
-        return choose(*l)
+        return choose(*l) if l else None
 
     def rand_func(self):
         return choose(*self.funcs)
@@ -110,6 +113,9 @@ def emitln(s):
 
 prog = c_program()
 
+_stmt_complex = 0
+_expr_complex = 0
+
 def gen_expr_bin():
     ops = ['+', '-', '/', '*', '||', '&&', '%']
     op = choose(*ops)
@@ -125,6 +131,8 @@ def gen_expr_paren():
 
 def gen_expr_ident():
     ident = prog.rand_ident()
+    if not ident:
+        raise BacktrackError
     emit(ident.name)
 
 def gen_expr_const():
@@ -135,6 +143,8 @@ def gen_expr_char():
 
 def gen_expr_assign():
     ident = prog.rand_ident()
+    if not ident:
+        raise BacktrackError
     emit('('); emit(ident.name); emit(' = '); gen_expr(); emit(')')
 
 def gen_expr_call():
@@ -145,18 +155,27 @@ def gen_expr_call():
     emit(')')
 
 def gen_expr():
+    global _expr_complex
     funcs = [
         gen_expr_const,
         gen_expr_char,
         gen_expr_ident,
-        gen_expr_paren,
-        gen_expr_unary,
-        gen_expr_bin,
-        gen_expr_assign,
-        gen_expr_call
+        gen_expr_paren  if _expr_complex <= 4 else None,
+        gen_expr_unary  if _expr_complex <= 4 else None,
+        gen_expr_bin    if _expr_complex <= 3 else None,
+        gen_expr_assign if _expr_complex <= 2 else None,
+        gen_expr_call   if _expr_complex <= 2 else None
     ]
-    f = choose(*funcs)
-    f()
+    while True:
+        try:
+            f = choose(*funcs)
+            if f:
+                _expr_complex = _expr_complex + 1
+                f()
+                _expr_complex = _expr_complex - 1
+                return
+        except BacktrackError:
+            pass
 
 def gen_stmt_putchar():
     indent(); emit('putchar('); gen_expr_char(); emitln(');')
@@ -173,27 +192,53 @@ def gen_stmt_if():
 def gen_stmt_compound():
     indent(); emitln('{')
     indent_inc()
-    nstmt = rand_range(0, 4)
-    for _ in range(nstmt):
-        gen_stmt()
+    gen_stmt_multi()
     indent_dec()
     indent(); emitln('}')
 
 def gen_stmt_expr():
     indent(); gen_expr(); emitln(';')
 
+def gen_stmt_while():
+    indent(); emit('while ('); gen_expr(); emitln(')')
+    indent_inc()
+    gen_stmt()
+    indent_dec()
+
+def gen_stmt_do():
+    indent(); emitln('do {')
+    indent_inc()
+    gen_stmt()
+    indent_dec()
+    indent(); emit('} while ('); gen_expr(); emitln(');')
+
+def gen_stmt_multi():
+    nstmt = rand_range(0, 4)
+    for _ in range(nstmt):
+        gen_stmt()
+
 def gen_stmt():
+    global _stmt_complex
     funcs = [
-        gen_stmt_return,
-        gen_stmt_putchar,
-        gen_stmt_if,
-        gen_stmt_compound,
-        gen_stmt_compound,
-        gen_stmt_expr,
-        gen_stmt_expr
+        gen_stmt_return   if _stmt_complex >= 1 else None,
+        gen_stmt_putchar ,
+        gen_stmt_putchar ,
+        gen_stmt_putchar ,
+        gen_stmt_if       if _stmt_complex <= 3 else None,
+        gen_stmt_compound if _stmt_complex <= 2 else None,
+        gen_stmt_compound if _stmt_complex <= 2 else None,
+        gen_stmt_expr     if _stmt_complex <= 4 else None,
+        gen_stmt_expr     if _stmt_complex <= 4 else None,
+        gen_stmt_while    if _stmt_complex <= 3 else None,
+        gen_stmt_do       if _stmt_complex <= 3 else None
     ]
-    f = choose(*funcs)
-    f()
+    while True:
+        f = choose(*funcs)
+        if f:
+            _stmt_complex = _stmt_complex + 1
+            f()
+            _stmt_complex = _stmt_complex - 1
+            return
 
 def gen_function(name=None, nargs=None):
     f = c_function(name=name or rand_name())
@@ -242,4 +287,5 @@ def main():
 
 if __name__ == '__main__':
     _seed = int(sys.argv[1]) if len(sys.argv) > 1 else 12345
+    emitln('/* seed={} */'.format(_seed))
     main()
