@@ -514,12 +514,12 @@ int stmt() {
     emit(C_RETURN);
     return 1;
   }
-  
+
   /* Empty statement */
   if (istoken(';')) {
     return 1;
   }
-  
+
   /* Expression */
   {
     expr(1, P_NONE);
